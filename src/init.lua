@@ -530,10 +530,11 @@ function Tack:_handleKeyDown(event)
         Tack.history:recordEvent(mode, keyName, flags)
 
         if type(handler) == "table" and handler.dispatchAction then
-            local shouldAutoExit = handler:dispatchAction(mode, Tack.history.action, Tack.history.workflow)
+            local ok, shouldAutoExit = pcall(handler.dispatchAction, handler, mode, Tack.history.action, Tack.history.workflow)
 
-            if shouldAutoExit then
+            if not ok or shouldAutoExit then
                 self.state:exitMode()
+                self.statusDisplay:show("desktop")
             end
         elseif type(handler) == "function" then
             local shouldAutoExit = handler(flags, keyName)
