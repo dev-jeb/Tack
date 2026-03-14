@@ -262,6 +262,8 @@ function Application:initialize(name, shortcuts, autoExitMode)
         { nil, nil, self.focus, { name, "Activate/Focus" } },
         { nil, "a", self.createMenuItemEvent("About "..name), { name, "About "..name } },
         { nil, "f", self.toggleFullScreen, { "View", "Toggle Full Screen" } },
+        { nil, "m", self.maximize, { "View", "Maximize Window" } },
+        { nil, "s", self.shrink, { "View", "Shrink Window" } },
         { nil, "h", self.createMenuItemEvent("Hide "..name), { name, "Hide Application" } },
         { nil, "q", self.createMenuItemEvent("Quit "..name), { name, "Quit Application" } },
         { nil, ",", self.createMenuItemEvent("Preferences...", true), { name, "Open Preferences" } },
@@ -332,6 +334,49 @@ end
 ---   * `true`
 function Application.toggleFullScreen(app)
     app:focusedWindow():toggleFullScreen()
+    return true
+end
+
+--- Application:maximize(app)
+--- Method
+--- Maximizes the focused application window to fill the screen
+---
+--- Parameters:
+---  * `app` - the [`hs.application`](https://www.hammerspoon.org/docs/hs.application.html) object
+---
+--- Returns:
+---   * `true`
+function Application.maximize(app)
+    local win = app:focusedWindow()
+    if win then
+        win:maximize()
+    end
+    return true
+end
+
+--- Application:shrink(app)
+--- Method
+--- Shrinks the focused window to 65% of the screen, centered
+---
+--- Parameters:
+---  * `app` - the [`hs.application`](https://www.hammerspoon.org/docs/hs.application.html) object
+---
+--- Returns:
+---   * `true`
+function Application.shrink(app)
+    local win = app:focusedWindow()
+    if win then
+        local screen = win:screen():frame()
+        local scale = 0.65
+        local w = screen.w * scale
+        local h = screen.h * scale
+        win:setFrame({
+            x = screen.x + (screen.w - w) / 2,
+            y = screen.y + (screen.h - h) / 2,
+            w = w,
+            h = h,
+        })
+    end
     return true
 end
 

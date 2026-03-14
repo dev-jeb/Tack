@@ -52,106 +52,120 @@ local KEY_GLYPHS = {
     space = "␣",
 }
 
--- Generate a view model of shortcuts partitioned into categories
-function Cheatsheet._createShortcutBlocks(shortcutList)
-    local shortcutBlocks = {}
-    local shortcutCategories = {}
+-- Format a hotkey string from modifier keys and key name
+local function formatHotkey(modifierKeys, keyName)
+    local hotkey = ""
+    for modifierKey, glyph in pairs(MODIFIER_GLYPHS) do
+        for _, shortcutModifierKey in pairs(modifierKeys or {}) do
+            if modifierKey == shortcutModifierKey then
+                hotkey = hotkey..glyph
+                break
+            end
+        end
+    end
+    keyName = KEY_GLYPHS[keyName or ""] or (keyName or ""):gsub("^%l", string.upper)
+    return hotkey..keyName
+end
+
+-- Mode categories that should appear as mode cards
+local MODE_CATEGORIES = {
+    ["Entities"] = { title = "Entity", hotkey = "⌘E", order = 1 },
+    ["URL Events"] = { title = "URL", hotkey = "⌘U", order = 2 },
+    ["Files"] = { title = "File", hotkey = "⌘F", order = 3 },
+    ["Select Events"] = { title = "Select", hotkey = "⌘S", order = 4 },
+    ["Normal Mode"] = { title = "Normal", hotkey = "⌘⎋", order = 5 },
+}
+
+-- Categories to show as common app shortcuts
+local COMMON_CATEGORIES = {
+    ["View"] = true,
+}
+
+-- Categories to skip entirely
+local SKIP_CATEGORIES = {
+    ["Cheat Sheet"] = true,
+}
+
+-- Build the view model for the cheatsheet
+function Cheatsheet._createViewModel(shortcutList)
+    local modeItems = {}
+    local commonItems = {}
 
     for _, shortcut in pairs(shortcutList) do
-        local shortcutModifierKeys = shortcut[_G.SHORTCUT_MODKEY_INDEX] or {}
-        local shortcutKey = shortcut[_G.SHORTCUT_HOTKEY_INDEX] or ""
-        local shortcutMetadata = shortcut[_G.SHORTCUT_METADATA_INDEX]
+        local modifierKeys = shortcut[_G.SHORTCUT_MODKEY_INDEX] or {}
+        local keyName = shortcut[_G.SHORTCUT_HOTKEY_INDEX] or ""
+        local metadata = shortcut[_G.SHORTCUT_METADATA_INDEX]
 
-        if shortcutMetadata and #shortcutMetadata > 0 and shortcutMetadata[1] then
-            local category = shortcutMetadata[1]
-            local name = shortcutMetadata[2]
-            local hotkey = ""
+        if metadata and #metadata > 0 and metadata[1] then
+            local category = metadata[1]
+            local name = metadata[2]
 
-            if not shortcutCategories[category] then
-                shortcutCategories[category] = {}
-            end
-
-            -- Create shortcut text
-            for modifierKey, glyph in pairs(MODIFIER_GLYPHS) do
-                for _, shortcutModifierKey in pairs(shortcutModifierKeys) do
-                    if modifierKey == shortcutModifierKey then
-                        hotkey = hotkey..glyph
-                        break
-                    end
+            if SKIP_CATEGORIES[category] then
+                -- skip
+            elseif MODE_CATEGORIES[category] then
+                if not modeItems[category] then
+                    modeItems[category] = {}
+                end
+                local hotkey = formatHotkey(modifierKeys, keyName)
+                table.insert(modeItems[category], { name = name, hotkey = hotkey })
+            elseif COMMON_CATEGORIES[category] then
+                if not commonItems[category] then
+                    commonItems[category] = {}
+                end
+                local hotkey = formatHotkey(modifierKeys, keyName)
+                -- Deduplicate
+                local found = false
+                for _, item in pairs(commonItems[category]) do
+                    if item.hotkey == hotkey then found = true break end
+                end
+                if not found then
+                    table.insert(commonItems[category], { name = name, hotkey = hotkey })
                 end
             end
-
-            shortcutKey = KEY_GLYPHS[shortcutKey] or shortcutKey:gsub("^%l", string.upper)
-
-            hotkey = hotkey..shortcutKey
-
-            table.insert(shortcutCategories[category], {
-                hotkey = hotkey,
-                name = name,
-            })
         end
     end
 
-    for category, shortcuts in pairs(shortcutCategories) do
-        local block = {{
-            isTitle = true,
-            name = category,
-        }}
-
-        -- Sort shortcuts by reversed hotkey
-        table.sort(shortcuts, function(a, b)
-            return string.reverse(a.hotkey) < string.reverse(b.hotkey)
-        end)
-
-        local used_shortcuts = {}
-        for _, shortcut in pairs(shortcuts) do
-            if used_shortcuts[shortcut.hotkey] == nil then
-                used_shortcuts[shortcut.hotkey] = true
-                table.insert(block, { name = shortcut.name, hotkey = shortcut.hotkey })
-            end
-        end
-
-        table.insert(shortcutBlocks, { shortcuts = block })
+    -- Build mode blocks sorted by order
+    local modeBlocks = {}
+    for category, items in pairs(modeItems) do
+        local info = MODE_CATEGORIES[category]
+        table.insert(modeBlocks, {
+            title = info.title,
+            hotkey = info.hotkey,
+            order = info.order,
+            items = items,
+        })
     end
+    table.sort(modeBlocks, function(a, b) return a.order < b.order end)
 
-    -- Sort shortcut blocks by category name
-    table.sort(shortcutBlocks, function(a, b)
-        return a.shortcuts[1].name < b.shortcuts[1].name
-    end)
+    -- Build common blocks
+    local commonBlocks = {}
+    for category, items in pairs(commonItems) do
+        table.insert(commonBlocks, {
+            title = category,
+            items = items,
+        })
+    end
+    table.sort(commonBlocks, function(a, b) return a.title < b.title end)
 
-    local glyphMapBlock = {{
-        isTitle = true,
-        name = "Cheat Sheet",
-    }}
+    -- Glyphs (only the ones you'd actually need)
+    local glyphs = {
+        { hotkey = "⌘", name = "Cmd" },
+        { hotkey = "⌥", name = "Opt" },
+        { hotkey = "⌃", name = "Ctrl" },
+        { hotkey = "⇧", name = "Shift" },
+        { hotkey = "⎋", name = "Esc" },
+        { hotkey = "␣", name = "Space" },
+        { hotkey = "↩", name = "Return" },
+        { hotkey = "⌫", name = "Delete" },
+    }
 
-    table.insert(glyphMapBlock, { hotkey = "⌘", name = "Command" })
-    table.insert(glyphMapBlock, { hotkey = "⌥", name = "Option/Alt" })
-    table.insert(glyphMapBlock, { hotkey = "⌃", name = "Control" })
-    table.insert(glyphMapBlock, { hotkey = "⇧", name = "Shift" })
-    table.insert(glyphMapBlock, { hotkey = "fn", name = "Fn" })
-    table.insert(glyphMapBlock, { hotkey = "↩", name = "Return" })
-    table.insert(glyphMapBlock, { hotkey = "⌤", name = "Enter" })
-    table.insert(glyphMapBlock, { hotkey = "⌫", name = "Delete" })
-    table.insert(glyphMapBlock, { hotkey = "→", name = "Right Arrow" })
-    table.insert(glyphMapBlock, { hotkey = "←", name = "Left Arrow" })
-    table.insert(glyphMapBlock, { hotkey = "↑", name = "Up Arrow" })
-    table.insert(glyphMapBlock, { hotkey = "↓", name = "Down Arrow" })
-    table.insert(glyphMapBlock, { hotkey = "⇞", name = "Page Up" })
-    table.insert(glyphMapBlock, { hotkey = "⇟", name = "Page Down" })
-    table.insert(glyphMapBlock, { hotkey = "↖", name = "Home" })
-    table.insert(glyphMapBlock, { hotkey = "↘", name = "End" })
-    table.insert(glyphMapBlock, { hotkey = "⇥", name = "Tab" })
-    table.insert(glyphMapBlock, { hotkey = "⎋", name = "Escape" })
-    table.insert(glyphMapBlock, { hotkey = "␣", name = "Space" })
-
-    table.insert(shortcutBlocks, { shortcuts = glyphMapBlock })
-
-    return shortcutBlocks
+    return modeBlocks, commonBlocks, glyphs
 end
 
 --- Cheatsheet:show()
 --- Method
---- Show the cheatsheet modal. Hit Escape <kbd>⎋</kbd> to close.
+--- Show the cheatsheet modal. Hit Escape to close.
 ---
 --- Parameters:
 ---  * None
@@ -159,11 +173,6 @@ end
 --- Returns:
 ---  * None
 function Cheatsheet:show()
-    local cssFilePath = _G.getSpoonPath().."/cheatsheet.css"
-    local cssFile = assert(io.open(cssFilePath, "rb"))
-    local css = cssFile:read("*all")
-    cssFile:close()
-
     local htmlFilePath = _G.getSpoonPath().."/cheatsheet.html"
     local htmlFile = assert(io.open(htmlFilePath, "rb"))
     local html = htmlFile:read("*all")
@@ -178,23 +187,28 @@ function Cheatsheet:show()
         appIconUri = iconImage:encodeAsURLString()
     end
 
-    local title = self.name.." Cheat Sheet"
+    local modeBlocks, commonBlocks, glyphs = self._createViewModel(self.shortcuts)
+
+    local title = "Tack"
     local viewModel = {
         title = title,
-        stylesheet = css,
         icon = appIconUri,
         description = self.description,
-        shortcutBlocks = self._createShortcutBlocks(self.shortcuts),
+        modeBlocks = modeBlocks,
+        commonBlocks = commonBlocks,
+        glyphs = glyphs,
     }
 
     self.view:windowTitle(title)
 
     local frame = hs.screen.mainScreen():fullFrame()
+    local w = math.min(frame.w * 0.45, 660)
+    local h = math.min(frame.h * 0.7, 720)
     self.view:frame({
-        x = frame.x + frame.w * 0.15 / 2,
-        y = frame.y + frame.h * 0.25 / 2,
-        w = frame.w * 0.85,
-        h = frame.h * 0.75,
+        x = frame.x + (frame.w - w) / 2,
+        y = frame.y + (frame.h - h) / 2,
+        w = w,
+        h = h,
     })
 
     local cheatsheetHtml = lustache:render(html, viewModel)
@@ -218,25 +232,10 @@ end
 --- Initialize the cheatsheet object
 ---
 --- Parameters:
----  * `name` - The subject of the cheatsheet. An icon image will be rendered in the modal view for application names.
----  * `description` - The description subtext to be rendered under the cheatsheet name
----  * `shortcuts` - A table containing the list of shortcuts to display in the cheatsheet
----  * `view` - An optional [`hs.webview`](https://www.hammerspoon.org/docs/hs.webview.html) instance to set custom styles for the cheatsheet. A titled, closable utility view will be configured with dark mode by default.
----
---- Each shortcut item in `shortcuts` must be a list with items at the following indices:
----  * `1` - An optional table containing zero or more of the following keyboard modifiers: `"cmd"`, `"alt"`, `"shift"`, `"ctrl"`, `"fn"`
----  * `2` - The name of a key. String representations of keys can be found in [`hs.keycodes.map`](https://www.hammerspoon.org/docs/hs.keycodes.html#map).
----  * `3` - The event handler function
----  * `4` - A table containing the metadata for the shortcut, also a list with items at the following indices:
----    * `1` - The category name of the shortcut
----    * `2` - A description of what the shortcut does
----
---- For example, the following Safari entity shortcuts will be rendered in the cheatsheet in the "File" category:
---- ```lua
---- { nil, "t", <function|Entity>, { "File", "Open New Tab" } },
---- { nil, "n", <function|Entity>, { "File", "Open New Window" } },
---- { { "shift" }, "n", <function|Entity>, { "File", "Open New Private Window" } },
---- ```
+---  * `name` - The subject of the cheatsheet
+---  * `description` - The description subtext
+---  * `shortcuts` - A table containing the list of shortcuts to display
+---  * `view` - An optional hs.webview instance
 ---
 --- Returns:
 ---  * None
@@ -247,10 +246,11 @@ function Cheatsheet:init(name, description, shortcuts, view)
 
     if not view then
         view = hs.webview.new({ x = 0, y = 0, w = 0, h = 0 })
-        view:windowStyle({ "utility", "titled", "closable" })
+        view:windowStyle({ "utility", "closable", "nonactivating" })
         view:level(hs.drawing.windowLevels.modalPanel)
         view:darkMode(true)
         view:shadow(true)
+        view:allowTextEntry(false)
     end
 
     self.view = view

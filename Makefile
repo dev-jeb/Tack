@@ -1,41 +1,19 @@
-.PHONY: docs deps
+.PHONY: deps
 
-# Working directory variable
 wd := $(shell git rev-parse --show-toplevel)
 
-# Monitor file changes at filepath $(1) and evaluate expression $(2) on events
 define monitor-file-changes
 	fswatch -rv $(1) | xargs -I {} sh -c '$(call $(2))'
 endef
 
-# Build the Ki spoon
 define build-command
 	$(wd)/build.sh
 endef
 
-# Run lua linter on src and spec files
-define lint-command
-	luacheck src/*.lua spec/*.lua
-endef
-
-# Run busted unit tests and write coverage report with optional tag argument
-define test-command
-	busted -c -t "$(tag)"; luacov-console; luacov-console -s;
-endef
-
-# Generate html and markup docs and copy styles to output directory
-define generate-docs-command
-	$(wd)/docs/build_docs.py -i "Ki" \
-		--output_dir $(wd)/docs \
-		--templates $(wd)/docs/templates/ \
-		--html --markdown --standalone --validate . && \
-		cp $(wd)/docs/templates/docs.css $(wd)/docs/html/docs.css
-endef
-
 spoon:
 	$(call build-command)
-	cp -r $(wd)/dist/build $(wd)/dist/Ki.spoon
-	zip -r dist/Ki.spoon.zip $(wd)/dist/Ki.spoon
+	cp -r $(wd)/dist/build $(wd)/dist/Tack.spoon
+	zip -r dist/Tack.spoon.zip $(wd)/dist/Tack.spoon
 
 dev:
 	$(call build-command)
@@ -43,51 +21,10 @@ dev:
 watch-dev:
 	$(call monitor-file-changes,$(wd)/src,build-command)
 
-lint:
-	$(call lint-command)
-
-watch-lint:
-	$(call monitor-file-changes,$(wd)/src,lint-command)
-
-test: clean-spoon clean-test
-	$(call test-command)
-
-watch-test:
-	$(call monitor-file-changes,$(wd)/spec,test-command)
-
-docs: clean-docs
-	$(call generate-docs-command)
-
-watch-docs:
-	$(call monitor-file-changes,$(wd)/src,generate-docs-command)
-
 deps:
 	luarocks install --lua-version 5.4 --tree deps fsm 1.1.0-1
 	luarocks install --lua-version 5.4 --tree deps lustache 1.3.1-0
 	luarocks install --lua-version 5.4 --tree deps middleclass 4.1.1-0
 
-lint-deps:
-	luarocks install --lua-version 5.4 luacheck
-
-docs-deps:
-	pip install --user jinja2 mistune pygments
-
-test-deps:
-	luarocks install --lua-version 5.4 busted
-	luarocks install --lua-version 5.4 luacov
-	luarocks install --lua-version 5.4 luacov-console
-
-dev-deps: lint-deps docs-deps test-deps
-
-clean-spoon:
-	rm -rfv $(wd)/dist/build
-	rm -rfv $(wd)/dist/Ki.spoon
-	rm -fv $(wd)/dist/Ki.spoon.zip
-
-clean-docs:
-	rm -rfv $(wd)/docs/markdown $(wd)/docs/html
-
-clean-test:
-	rm -fv $(wd)/luacov.*
-
-clean: clean-spoon clean-test
+clean:
+	rm -rfv $(wd)/dist

@@ -71,7 +71,7 @@ function SmartFolder:initialize(path, shortcuts)
     self.shortcuts = mergedShortcuts
     self.cheatsheet = cheatsheet
 
-    local cheatsheetDescription = "Ki shortcut keybindings registered for smart folder at "..self.path
+    local cheatsheetDescription = "Tack shortcut keybindings registered for smart folder at "..self.path
     self.cheatsheet:init(self.path, cheatsheetDescription, mergedShortcuts)
 end
 

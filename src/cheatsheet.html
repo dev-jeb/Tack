@@ -1,35 +1,74 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <style type="text/css">
-            {{stylesheet}}
-        </style>
-    </head>
-    <body>
-        <div class="cheatsheet">
-            <div class="content">
-                <div class="columns">
-                    {{#shortcutBlocks}}
-                    <div class="block">
-                        {{#shortcuts}}
-                        <div class="block-item {{#isTitle}}block-item-title{{/isTitle}}">
-                            <div class="shortcut-hotkey">{{hotkey}}</div><div class="shortcut-title">{{name}}</div>
-                        </div>
-                        {{/shortcuts}}
-                    </div>
-                    {{/shortcutBlocks}}
+<head>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #111a11; font-family: "SF Pro Display", -apple-system, sans-serif; -webkit-user-select: none; -webkit-font-smoothing: antialiased; overflow: hidden; }
+</style>
+</head>
+<body>
+<div style="width:100vw; height:100vh; display:flex; flex-direction:column;">
+
+    <div style="flex:1; overflow-y:auto; padding:16px 32px 32px 32px;">
+
+        <div style="display:flex; flex-direction:column; align-items:center; padding:16px 0 20px 0;">
+            <div style="display:flex; gap:6px; margin-bottom:6px;">
+                <span style="display:inline-flex; align-items:center; justify-content:center; min-width:38px; height:38px; padding:0 12px; font-family:'SF Mono',Menlo,monospace; font-size:18px; font-weight:500; color:#8cb880; background:rgba(120,180,100,0.1); border:1px solid rgba(120,180,100,0.18); border-radius:5px;">⌘</span>
+                <span style="display:inline-flex; align-items:center; justify-content:center; min-width:38px; height:38px; padding:0 12px; font-family:'SF Mono',Menlo,monospace; font-size:18px; font-weight:500; color:#8cb880; background:rgba(120,180,100,0.1); border:1px solid rgba(120,180,100,0.18); border-radius:5px;">⎋</span>
+            </div>
+            <div style="font-size:13px; color:#4a5e46;">to enter Tack</div>
+        </div>
+
+        <div style="text-align:center; font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.12em; color:#3a4d37; margin-bottom:12px;">then pick a mode</div>
+
+        {{#modeBlocks}}
+        <div style="background:rgba(120,180,100,0.03); border:1px solid rgba(120,180,100,0.08); border-radius:12px; overflow:hidden; margin-bottom:10px;" id="card-{{title}}">
+            <div onclick="var c=document.getElementById('card-{{title}}');var b=c.querySelector('[data-body]');var ch=c.querySelector('[data-chev]'); if(b.style.maxHeight==='0px'){b.style.maxHeight='500px';b.style.opacity='1';b.style.padding='0 6px 6px 6px';ch.style.transform='rotate(90deg)';}else{b.style.maxHeight='0px';b.style.opacity='0';b.style.padding='0 6px';ch.style.transform='rotate(0deg)';}" style="display:flex; align-items:center; padding:10px 14px; cursor:pointer;">
+                <span style="font-size:13px; font-weight:600; color:#b8ccb0;">{{title}}</span>
+                <div style="margin-left:auto; display:flex; align-items:center; gap:8px;">
+                    <span style="display:inline-flex; align-items:center; justify-content:center; min-width:22px; height:22px; padding:0 6px; font-family:'SF Mono',Menlo,monospace; font-size:11px; font-weight:500; color:#8cb880; background:rgba(120,180,100,0.12); border:1px solid rgba(120,180,100,0.2); border-radius:5px;">{{hotkey}}</span>
+                    <span data-chev style="font-size:14px; color:#3d4f3a; display:inline-block; transform:rotate(0deg); transition:transform 0.2s ease;">›</span>
                 </div>
             </div>
-            <hr>
-            <footer>
-                {{#icon}}
-                <img class="icon" src="{{icon}}"/>
-                {{/icon}}
-                <div class="title-section">
-                    <div class="title">{{title}}</div>
-                    <small class="subtitle">{{description}}</small>
+            <div data-body style="max-height:0px; opacity:0; overflow:hidden; padding:0 6px; transition:max-height 0.25s ease, opacity 0.2s ease, padding 0.25s ease;">
+                {{#items}}
+                <div style="display:flex; align-items:center; padding:5px 10px; border-radius:8px; gap:10px;">
+                    <span style="flex:1; color:#7d907a; font-size:12px;">{{name}}</span>
+                    <span style="display:inline-flex; align-items:center; justify-content:center; min-width:22px; height:22px; padding:0 6px; font-family:'SF Mono',Menlo,monospace; font-size:11px; font-weight:500; color:#6b7f65; background:rgba(120,180,100,0.06); border:1px solid rgba(120,180,100,0.1); border-radius:5px;">{{hotkey}}</span>
                 </div>
-            </footer>
+                {{/items}}
+            </div>
         </div>
-    </body>
+        {{/modeBlocks}}
+        {{#commonBlocks}}
+        <div style="background:rgba(120,180,100,0.03); border:1px solid rgba(120,180,100,0.08); border-radius:12px; overflow:hidden; margin-bottom:10px;" id="card-common-{{title}}">
+            <div onclick="var c=document.getElementById('card-common-{{title}}');var b=c.querySelector('[data-body]');var ch=c.querySelector('[data-chev]'); if(b.style.maxHeight==='0px'){b.style.maxHeight='500px';b.style.opacity='1';b.style.padding='0 6px 6px 6px';ch.style.transform='rotate(90deg)';}else{b.style.maxHeight='0px';b.style.opacity='0';b.style.padding='0 6px';ch.style.transform='rotate(0deg)';}" style="display:flex; align-items:center; padding:10px 14px; cursor:pointer;">
+                <span style="font-size:13px; font-weight:600; color:#b8ccb0;">{{title}}</span>
+                <span data-chev style="margin-left:auto; font-size:14px; color:#3d4f3a; display:inline-block; transform:rotate(0deg); transition:transform 0.2s ease;">›</span>
+            </div>
+            <div data-body style="max-height:0px; opacity:0; overflow:hidden; padding:0 6px; transition:max-height 0.25s ease, opacity 0.2s ease, padding 0.25s ease;">
+                {{#items}}
+                <div style="display:flex; align-items:center; padding:5px 10px; border-radius:8px; gap:10px;">
+                    <span style="flex:1; color:#7d907a; font-size:12px;">{{name}}</span>
+                    <span style="display:inline-flex; align-items:center; justify-content:center; min-width:22px; height:22px; padding:0 6px; font-family:'SF Mono',Menlo,monospace; font-size:11px; font-weight:500; color:#6b7f65; background:rgba(120,180,100,0.06); border:1px solid rgba(120,180,100,0.1); border-radius:5px;">{{hotkey}}</span>
+                </div>
+                {{/items}}
+            </div>
+        </div>
+        {{/commonBlocks}}
+
+    </div>
+
+    <div style="display:flex; padding:10px 24px; align-items:center; background:rgba(120,180,100,0.02); border-top:1px solid rgba(120,180,100,0.06);">
+        <div style="flex:1; line-height:1.4;">
+            <div style="font-size:11px; font-weight:600; color:#b8ccb0;">Tack</div>
+        </div>
+        <div style="font-size:10px; color:#3a4d37; display:flex; align-items:center; gap:4px;">
+            <span style="display:inline-flex; align-items:center; justify-content:center; min-width:18px; height:18px; padding:0 5px; font-family:'SF Mono',Menlo,monospace; font-size:10px; font-weight:500; color:#6b7f65; background:rgba(120,180,100,0.06); border:1px solid rgba(120,180,100,0.1); border-radius:5px;">⎋</span>
+            to close
+        </div>
+    </div>
+
+</div>
+</body>
 </html>

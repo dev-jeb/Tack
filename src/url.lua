@@ -170,7 +170,7 @@ function URL:initialize(url, shortcuts)
     self.shortcuts = mergedShortcuts
     self.cheatsheet = cheatsheet
 
-    local cheatsheetDescription = "Ki shortcut keybindings registered for url: "..self.url
+    local cheatsheetDescription = "Tack shortcut keybindings registered for url: "..self.url
     self.cheatsheet:init(self.path, cheatsheetDescription, mergedShortcuts)
 end
 

@@ -2,7 +2,7 @@
 #
 # Create and symlink dist folder to spoons folder
 
-SPOON="Ki.spoon"
+SPOON="Tack.spoon"
 WORKING_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SRC_DIR="$WORKING_DIR/src"
 DIST_DIR="$WORKING_DIR/dist"
@@ -37,7 +37,7 @@ build() {
     # Remove pre-existing spoon link
     if [ -d "$LINK_TARGET" ]; then
         rm "$LINK_TARGET"
-        echo "build.sh: Removed pre-existing Ki spoon"
+        echo "build.sh: Removed pre-existing Tack spoon"
     fi
 
     # Symlink dist folder to spoons folder

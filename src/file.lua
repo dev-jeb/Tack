@@ -141,7 +141,7 @@ function File:initialize(path, shortcuts, options)
     self.showHiddenFiles = options.showHiddenFiles or false
     self.sortAttribute = options.sortAttribute or "modification"
 
-    local cheatsheetDescription = "Ki shortcut keybindings registered for file "..self.path
+    local cheatsheetDescription = "Tack shortcut keybindings registered for file "..self.path
     self.cheatsheet:init(self.path, cheatsheetDescription, mergedShortcuts)
 end
 

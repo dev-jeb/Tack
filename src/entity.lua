@@ -71,8 +71,8 @@ setmetatable(Entity.behaviors, {
 --- Returns:
 ---  * None
 function Entity.notifyError(message, details)
-    hs.notify.show("Ki", message, details)
-    print("[Ki] "..message..":", details)
+    hs.notify.show("Tack", message, details)
+    print("[Tack] "..message..":", details)
 end
 
 --- Entity.renderScriptTemplate(script[, viewModel]) -> string
@@ -80,7 +80,7 @@ end
 --- Generates an applescript from templates located in `src/osascripts` with some view model object
 ---
 --- Parameters:
----  * `scriptPath` - The absolute file path to the applescript file or the name of an existing Ki applescript file (in src/osascripts)
+---  * `scriptPath` - The absolute file path to the applescript file or the name of an existing Tack applescript file (in src/osascripts)
 ---  * `viewModel` - An optional [lustache](http://olivinelabs.com/lustache/) view model
 ---
 --- Returns:
@@ -134,7 +134,7 @@ function Entity:initialize(name, shortcuts, autoExitMode)
     self.shortcuts = shortcuts
     self.cheatsheet = cheatsheet
 
-    local cheatsheetDescription = "Ki shortcut keybindings registered for "..self.name
+    local cheatsheetDescription = "Tack shortcut keybindings registered for "..self.name
     self.cheatsheet:init(self.name, cheatsheetDescription, self.shortcuts)
 end
 
